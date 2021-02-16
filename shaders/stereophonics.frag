@@ -5,9 +5,11 @@ in 	vec2 texr;
 
 out vec4 col;
 
-uniform sampler2D cam;
+layout(binding=0) uniform sampler2D caml;
+layout(binding=1) uniform sampler2D camr;
 
 void main()
 {
-	col = abs(vec4(length(texture(cam, texl)) - length(texture(cam, texr))));	
+	float v = length(texture(caml, texl)) - length(texture(camr, texr));
+	col = vec4(v, -v, 0, 1);
 }

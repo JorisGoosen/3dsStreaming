@@ -8,6 +8,6 @@ out vec2 texr;
 
 void main(){
 	gl_Position = vec4(vPos, 0.0, 1.0);
-  	texl = vTex * vec2(1, -0.5);
-	texr = texl + vec2(0, 0.513); //manually calibrated y ;)
+  	texl = vTex  * vec2(1, -1);	
+	texr = texl - vec2(-0.016, 0.022); //manually calibrated ;)
 }

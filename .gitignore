@@ -1,3 +1,7 @@
 *.o
 3dsReceiver
 .vscode
+3dsSender/3dsSender.3dsx
+3dsSender/3dsSender.elf
+3dsSender/3dsSender.smdh
+3dsSender/build/

@@ -108,7 +108,8 @@ void ontvang(weergaveScherm & scherm)
 	}
 
 	//printf("Heel frame ontvangen (waarschijnlijk)!\n");
-	scherm.maakTextuur("cam", WIDTH, HEIGHT * 2, beeld, GL_RGB,  GL_UNSIGNED_SHORT_5_6_5);
+	scherm.maakTextuur("caml", WIDTH, HEIGHT, beeld, 				GL_RGB,  GL_UNSIGNED_SHORT_5_6_5);
+	scherm.maakTextuur("camr", WIDTH, HEIGHT, beeld + SCREEN_SIZE, 	GL_RGB,  GL_UNSIGNED_SHORT_5_6_5);
 }
 
 
@@ -135,7 +136,8 @@ int main()
 
 	glErrorToConsole("Voordat we cam registreren: ");
 
-	scherm.maakTextuur("cam", WIDTH, HEIGHT * 2, beeld, GL_RGB,  GL_UNSIGNED_SHORT_5_6_5);
+	scherm.maakTextuur("caml", WIDTH, HEIGHT, beeld, GL_RGB,  GL_UNSIGNED_SHORT_5_6_5);
+	scherm.maakTextuur("camr", WIDTH, HEIGHT, beeld, GL_RGB,  GL_UNSIGNED_SHORT_5_6_5);
 
 	wrgvOpslag 				*_reeks		= nullptr;
 	wrgvOnderOpslag<float>	*_punten	= nullptr,
@@ -151,6 +153,7 @@ int main()
 	_punten->ggvPuntErbij(vec2( 1.0f,  0.0f));
 	_punten->ggvPuntErbij(vec2( 0.0f,  0.0f));
 	
+	//Deze staat weliswaar links maar is rechts... Zodat je lekker scheel kan kijken ^^
 	_punten->ggvPuntErbij(vec2(-1.0f, -1.0f));
 	_punten->ggvPuntErbij(vec2( 0.0f, -1.0f));
 	_punten->ggvPuntErbij(vec2( 0.0f,  0.0f));
@@ -164,14 +167,14 @@ int main()
 	
 	
 	_tex = new wrgvOnderOpslag<float>(2, _reeks, 1);
-	
+
 	_tex->ggvPuntErbij(vec2( 0.0f,  0.0f));
 	_tex->ggvPuntErbij(vec2( 1.0f,  0.0f));
-	_tex->ggvPuntErbij(vec2( 1.0f,  0.5f));
-	_tex->ggvPuntErbij(vec2( 0.0f,  0.5f));
+	_tex->ggvPuntErbij(vec2( 1.0f,  1.0f));
+	_tex->ggvPuntErbij(vec2( 0.0f,  1.0f));
 
-	_tex->ggvPuntErbij(vec2( 0.0f,  0.5f));
-	_tex->ggvPuntErbij(vec2( 1.0f,  0.5f));
+	_tex->ggvPuntErbij(vec2( 0.0f,  0.0f));
+	_tex->ggvPuntErbij(vec2( 1.0f,  0.0f));
 	_tex->ggvPuntErbij(vec2( 1.0f,  1.0f));
 	_tex->ggvPuntErbij(vec2( 0.0f,  1.0f));
 
@@ -220,28 +223,26 @@ int main()
 		ruisje0.zetKnooppunten(5, 6);*/
 	};
 
-	
+	static unsigned int indices[] = {1, 2, 0, 3 ,/**/ 5, 6, 4, 7, /**/ 9, 10, 8, 11};
 
 
 	glErrorToConsole("Voordat we beginnen: ");
 	std::cout << "Laten we beginnen..." << std::endl;
 	while(!scherm.stopGewenst())
 	{
-		glDisable(GL_BLEND);
-		scherm.bereidRenderVoor("toon3DS");
-		scherm.bindTextuur("cam", 0);
-		basisShaderInfo();
-		//scherm.geefWeer();
-
 		glDisable(GL_DEPTH_TEST);
-		static unsigned int indices[] = {1, 2, 0, 3 ,/**/ 5, 6, 4, 7, /**/ 9, 10, 8, 11};
-
+		scherm.bereidRenderVoor("toon3DS");
+		basisShaderInfo();
+		scherm.bindTextuur("camr", 0);
 		_reeks->bindPuntReeks();	
 		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, indices);
+
+		scherm.bindTextuur("caml", 0);
 		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, indices + 4);
 
 		scherm.bereidRenderVoor("stereophonics", false);
-		scherm.bindTextuur("cam", 0);
+		scherm.bindTextuur("caml", 0);
+		scherm.bindTextuur("camr", 1);
 		_reeks->bindPuntReeks();
 		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, indices + 8);
 

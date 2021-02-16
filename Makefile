@@ -2,7 +2,7 @@ CXXFLAGS 	= -fPIC -g -W -Wall -Wextra -Werror=return-type -std=c++2a `pkg-config
 LIBFLAGS 	= `pkg-config --libs glfw3 glew gl libpng` -LGereedschap -lgereedschap
 OBJECTS 	= $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
-all: 3dsReceiver
+all: 3dsReceiver 3dsSender
 
 3dsReceiver: gereedschap $(OBJECTS)
 	g++ $(CXXFLAGS) -o $@ $(OBJECTS) $(LIBFLAGS)
@@ -13,7 +13,11 @@ all: 3dsReceiver
 gereedschap:
 	$(MAKE) -C Gereedschap
 
+3dsSender:
+	$(MAKE) clean -C 3dsSender
+
 clean:
 	rm $(OBJECTS) 	|| echo "geen objecten om op te ruimen"
 	rm 3dsReceiver	|| echo "er was geen 3dsReceiver"
 	$(MAKE) clean -C Gereedschap
+	$(MAKE) clean -C 3dsSender
