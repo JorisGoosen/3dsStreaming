@@ -69,7 +69,7 @@ uint32_t maxFrame = 0;
 
 void ontvang(weergaveScherm & scherm)
 {
-	size_t maxAttempts = 1000;
+	size_t maxAttempts = 100;
 
 	for(size_t huidigeRegel = 0; huidigeRegel<STAPPEN; )
 	{
@@ -103,7 +103,7 @@ void ontvang(weergaveScherm & scherm)
 
 			
 		}
-		else if(--maxAttempts <= 1)
+		else if(--maxAttempts < 2)
 			return;
 	}
 
@@ -114,13 +114,16 @@ void ontvang(weergaveScherm & scherm)
 
 int main()
 {
+	using namespace glm;
+
 	laadSockets();
 
-	weergaveSchermVierkant scherm("3DS Receiver", 1280, 720, true);
+	weergaveScherm scherm("3DS Receiver", 1280, 720);
 
 	const glm::uvec3 dimensies(64);
 
-	scherm.maakShader(			"toon3DS", 	"shaders/toon3DS.vert", 		"shaders/toon3DS.frag"		);
+	scherm.maakShader(			"toon3DS",		 	"shaders/toon3DS.vert", 			"shaders/toon3DS.frag"		);
+	scherm.maakShader(			"stereophonics", 	"shaders/stereophonics.vert", 		"shaders/stereophonics.frag"		);
 	//scherm.maakVolumeTextuur(	"terrarium", 		dimensies, 							vulVolumeVoorbeeld(dimensies).data());
 
 	glErrorToConsole("Na shadershit: ");
@@ -128,11 +131,57 @@ int main()
 	glClearColor(0,0,0,0);
 
 	beeld = (GLubyte*)malloc(BUF_SIZE);
-	memset(beeld, 0, BUF_SIZE);
+	memset(beeld, 64, BUF_SIZE);
 
 	glErrorToConsole("Voordat we cam registreren: ");
 
-	scherm.maakTextuur("cam", WIDTH * 2, HEIGHT, beeld, GL_RGB,  GL_UNSIGNED_SHORT_5_6_5);
+	scherm.maakTextuur("cam", WIDTH, HEIGHT * 2, beeld, GL_RGB,  GL_UNSIGNED_SHORT_5_6_5);
+
+	wrgvOpslag 				*_reeks		= nullptr;
+	wrgvOnderOpslag<float>	*_punten	= nullptr,
+							*_tex		= nullptr;
+
+
+
+	_reeks = new wrgvOpslag();
+	
+	_punten = new wrgvOnderOpslag<float>(2, _reeks, 0);
+	_punten->ggvPuntErbij(vec2( 0.0f, -1.0f));
+	_punten->ggvPuntErbij(vec2( 1.0f, -1.0f));
+	_punten->ggvPuntErbij(vec2( 1.0f,  0.0f));
+	_punten->ggvPuntErbij(vec2( 0.0f,  0.0f));
+	
+	_punten->ggvPuntErbij(vec2(-1.0f, -1.0f));
+	_punten->ggvPuntErbij(vec2( 0.0f, -1.0f));
+	_punten->ggvPuntErbij(vec2( 0.0f,  0.0f));
+	_punten->ggvPuntErbij(vec2(-1.0f,  0.0f));
+
+	_punten->ggvPuntErbij(vec2(-1.0f,  0.0f));
+	_punten->ggvPuntErbij(vec2( 0.0f,  0.0f));
+	_punten->ggvPuntErbij(vec2( 0.0f,  1.0f));
+	_punten->ggvPuntErbij(vec2(-1.0f,  1.0f));
+
+	
+	
+	_tex = new wrgvOnderOpslag<float>(2, _reeks, 1);
+	
+	_tex->ggvPuntErbij(vec2( 0.0f,  0.0f));
+	_tex->ggvPuntErbij(vec2( 1.0f,  0.0f));
+	_tex->ggvPuntErbij(vec2( 1.0f,  0.5f));
+	_tex->ggvPuntErbij(vec2( 0.0f,  0.5f));
+
+	_tex->ggvPuntErbij(vec2( 0.0f,  0.5f));
+	_tex->ggvPuntErbij(vec2( 1.0f,  0.5f));
+	_tex->ggvPuntErbij(vec2( 1.0f,  1.0f));
+	_tex->ggvPuntErbij(vec2( 0.0f,  1.0f));
+
+	_tex->ggvPuntErbij(vec2( 0.0f,  0.0f));
+	_tex->ggvPuntErbij(vec2( 1.0f,  0.0f));
+	_tex->ggvPuntErbij(vec2( 1.0f,  1.0f));
+	_tex->ggvPuntErbij(vec2( 0.0f,  1.0f));
+
+	_punten->spoel();
+	_tex->spoel();
 
 	
 	weergaveScherm::keyHandlerFunc toetsenbord = [&](int key, int scancode, int action, int mods)
@@ -182,7 +231,19 @@ int main()
 		scherm.bereidRenderVoor("toon3DS");
 		scherm.bindTextuur("cam", 0);
 		basisShaderInfo();
-		scherm.geefWeer();
+		//scherm.geefWeer();
+
+		glDisable(GL_DEPTH_TEST);
+		static unsigned int indices[] = {1, 2, 0, 3 ,/**/ 5, 6, 4, 7, /**/ 9, 10, 8, 11};
+
+		_reeks->bindPuntReeks();	
+		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, indices);
+		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, indices + 4);
+
+		scherm.bereidRenderVoor("stereophonics", false);
+		scherm.bindTextuur("cam", 0);
+		_reeks->bindPuntReeks();
+		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, indices + 8);
 
 
 		scherm.rondRenderAf();
