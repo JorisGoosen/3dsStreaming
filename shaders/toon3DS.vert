@@ -8,7 +8,7 @@ out vec4 kleur;
 
 void main(){
 	gl_Position = vec4(vPos, 0.0, 1.0);
-  	tex = vTex;
+  	tex = vTex * vec2(2, -1);
 
 	kleur = vec4(tex, 0,  1);
 }

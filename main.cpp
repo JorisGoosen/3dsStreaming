@@ -20,6 +20,7 @@
 #define MAXLINE BUF_SIZE / STAPPEN 
 #define PORT     1234 
 
+#define EXTRA_INFO 8 
 
 GLubyte * buffer, *beeld;
 socklen_t len;
@@ -31,7 +32,7 @@ struct sockaddr_in servaddr, cliaddr;
 
 void laadSockets()
 {
-    buffer = (GLubyte*)malloc(MAXLINE + 4);
+    buffer = (GLubyte*)malloc(MAXLINE + EXTRA_INFO);
 
     char *hello = "Hello from server"; 
     
@@ -64,28 +65,46 @@ void laadSockets()
 }
 
 
+uint32_t maxFrame = 0;
 
 void ontvang(weergaveScherm & scherm)
 {
-	
+	size_t maxAttempts = 1000;
+
 	for(size_t huidigeRegel = 0; huidigeRegel<STAPPEN; )
 	{
-		n = recvfrom(sockfd, (char *)buffer, MAXLINE + 4,  MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len); 
+		n = recvfrom(sockfd, (char *)buffer, MAXLINE + EXTRA_INFO,  MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len); 
 		//buffer[n] = '\0'; 
 
 		//printf("Received %d chars\n", n, buffer);
 
 		if(n > 0)
 		{
-			uint32_t regel;
-			memcpy(&regel, buffer, 4);
-			//printf("was regel %d\n", regel);
-			memcpy(beeld + (MAXLINE * regel), buffer + 4, MAXLINE);
+			uint32_t regel, frame;
+			memcpy(&frame, buffer, 		4);
+			memcpy(&regel, buffer + 4, 	4);
 
-			huidigeRegel++;
+			if(frame < 128 && maxFrame >= 128) //rondje gemaakt
+				maxFrame = frame;
+
+			if(frame > maxFrame)
+			{
+				maxFrame = frame;
+				huidigeRegel = 0;
+			}
+
+			if(frame == maxFrame)
+			{
+				//printf("was regel %d\n", regel);
+				memcpy(beeld + (MAXLINE * regel), buffer + EXTRA_INFO, MAXLINE);
+
+				huidigeRegel++;
+			}
 
 			
 		}
+		else if(--maxAttempts <= 1)
+			return;
 	}
 
 	//printf("Heel frame ontvangen (waarschijnlijk)!\n");
